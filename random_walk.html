@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Random Walk - JavaScript Animation</title>
+	</head>
+	<body>
+		<canvas id="MyCanvas" width="2048" height="2048"></canvas>
+		<script>
+			"use strict";
+
+			// graphics
+			var hCanvas  = undefined;
+			var hContext = undefined;
+			var nCanvasW = 0;
+			var nCanvasH = 0;
+			var tImage   = undefined;
+			var aTexels  = undefined;  // 1D array representing 2D data
+
+			// game loop timer
+			var nTimerId = 0;
+			
+			// walkers
+			var nWalkers = 256;
+			var aX = new Array(nWalkers);
+			var aY = new Array(nWalkers);
+			var aR = new Array(nWalkers);
+			var aG = new Array(nWalkers);
+			var aB = new Array(nWalkers);
+
+			// determine index into linear frame buffer from (x,y)
+			function plot_pixel_xy(x, y, r, g, b)
+			{
+				var i = (y * nCanvasW + x) * 4; // 32-bit RGBA
+				aTexels[i + 0] = r;
+				aTexels[i + 1] = g;
+				aTexels[i + 2] = b;
+				aTexels[i + 3] = 255;
+			}
+
+			function init_walkers()
+			{
+				for (var i = 0; i < nWalkers; i++)
+				{
+					aX[i] = Math.floor(nCanvasW / 2.0);
+					aY[i] = Math.floor(nCanvasH / 2.0);
+					aR[i] = (i * 3) % 192;
+					aG[i] = (i * 5) % 128;
+					aB[i] = (i * 7) % 128;
+				}
+			}
+
+			function update_draw_frame()
+			{
+				// update
+				for (var iterate = 0; iterate < 100; iterate++)
+				{
+					for (var i = 0; i < nWalkers; i++)
+					{
+						var dx = Math.floor(Math.random() * 3) - 1;
+						var dy = Math.floor(Math.random() * 3) - 1;
+						aX[i] = aX[i] + dx;
+						aY[i] = aY[i] + dy;
+						plot_pixel_xy(aX[i], aY[i], aR[i], aG[i], aB[i]);
+					}
+				}
+		
+				// "draw" the image
+				hContext.putImageData(tImage, 0, 0);
+			}
+			
+			function main_function()
+			{
+				hCanvas  = document.getElementById("MyCanvas");
+				hContext = hCanvas.getContext("2d");
+				nCanvasW = hCanvas.width;
+				nCanvasH = hCanvas.height;
+				tImage   = hContext.getImageData(0, 0, nCanvasW, nCanvasH);
+				aTexels  = tImage.data; 
+
+				init_walkers();
+				
+				// game loop
+				// update & draw frame
+				nTimerId = setInterval(function() { update_draw_frame(); }, 1000 / 60);
+			}
+
+			// launch main
+			
+			// anonymous function that is defined and run when defined
+			// SOURCE: https://stackoverflow.com/a/50910561/135218
+			// this works when inside https://htmlpreview.github.io/  :)
+			(function () {
+				main_function();
+			})();
+			
+			// NOTE: the following do NOT work inside https://htmlpreview.github.io/  :)
+			//	1.
+			//		<body onload="main_function()">
+			//		Further note: If trying to use the above, main_function() has to exist
+			//		before this line, so you'll have to move the SCRIPT into HEAD (it can
+			//		exist in HEAD or BODY for JavaScript validation).
+			//	2.
+			//		window.onload = main_function;
+			//		(being included in the JavaScript code)
+			
+		</script>
+	</body>
+</html>

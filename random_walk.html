@@ -48,6 +48,22 @@
 					aB[i] = (i * 7) % 128;
 				}
 			}
+			
+			// SOURCE: https://en.wikipedia.org/wiki/Xorshift
+			var xorshift32_state = 1234567890;  // The state word must be initialized to non-zero
+			function xorshift32_prng()
+			{
+				// Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs"
+				var x = xorshift32_state;
+				x ^= x << 13;  // << for JavaScript = zero fill left shift
+				if (x < 0) x += 4294967296; // JavaScript deals with 32 SIGNED for all bitshifts <sigh>
+				x ^= x >>> 17;  // NOTE: using >>> for JavaScript = zero fill right shift
+				//if (x < 0) x += 4294967296; // JavaScript deals with 32 SIGNED for all bitshifts <sigh>
+				x ^= x << 5;
+				if (x < 0) x += 4294967296; // JavaScript deals with 32 SIGNED for all bitshifts <sigh>
+				xorshift32_state = x;
+				return x;
+			}
 
 			function update_draw_frame()
 			{
@@ -56,8 +72,12 @@
 				{
 					for (var i = 0; i < nWalkers; i++)
 					{
-						var dx = Math.floor(Math.random() * 3) - 1;
-						var dy = Math.floor(Math.random() * 3) - 1;
+						// Math.random()
+						//var dx = Math.floor(Math.random() * 3) - 1;
+						//var dy = Math.floor(Math.random() * 3) - 1;
+						// xorshift32_prng()
+						var dx = Math.floor(xorshift32_prng() % 3) - 1;
+						var dy = Math.floor(xorshift32_prng() % 3) - 1;
 						aX[i] = aX[i] + dx;
 						aY[i] = aY[i] + dy;
 						plot_pixel_xy(aX[i], aY[i], aR[i], aG[i], aB[i]);
